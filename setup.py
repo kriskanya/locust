@@ -54,5 +54,8 @@ setup(
             'locust = locust.main:main',
         ]
     },
+    extras_require={
+        'scipy': ['numpy', 'scipy', 'scikits.bootstrap'],
+    },
     test_suite='unittest2.collector',
 )
