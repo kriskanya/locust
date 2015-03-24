@@ -236,6 +236,7 @@ def parse_options():
         dest='precision',
         default=2,
         help="how many digits of precision to store for the response time aggregations"
+    )
 
     # Writes output statistics as csv
     parser.add_option(
