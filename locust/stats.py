@@ -483,7 +483,7 @@ class StatsEntry(object):
             target_percentiles = sorted(percentiles, reverse=True)
             for response_time, count in sorted(self.response_times.iteritems(), reverse=True):
                 processed_count += count
-                while (self.num_requests - processed_count) <= target_percentiles[0]:
+                while target_percentiles and float(self.num_requests - processed_count) / self.num_requests <= target_percentiles[0]:
                     response_times[target_percentiles.pop(0)] = response_time
 
             return response_times
