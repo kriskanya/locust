@@ -325,7 +325,7 @@ class StatsEntry(object):
         if not self.response_times:
             return 0
 
-        return median_from_dict(self.num_requests, self.response_times)
+        return self.get_response_time_percentiles([.5])[.5]
 
     @property
     def current_rps(self):

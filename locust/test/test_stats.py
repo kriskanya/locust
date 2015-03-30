@@ -65,8 +65,8 @@ class TestRequestStats(unittest.TestCase):
         self.assertEqual(self.s.num_requests, 2)
         self.assertEqual(self.s.num_failures, 1)
         self.assertEqual(self.s.avg_response_time, 420.5)
-        self.assertEqual(self.s.median_response_time, 85)
-
+        self.assertEqual(self.s.median_response_time, 760.0)
+    
     def test_reset_min_response_time(self):
         self.s.reset()
         self.s.log(756, 0, 0)
