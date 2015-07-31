@@ -248,7 +248,7 @@ class StatsEntry(object):
         self.min_response_time = None
         self.max_response_time = 0
         self.last_request_timestamp = int(time.time())
-        self.num_reqs_per_sec = {}
+        self.num_reqs_per_sec = defaultdict(int)
         self.total_content_length = 0
 
     def log(self, response_time, content_length):
@@ -264,7 +264,7 @@ class StatsEntry(object):
 
     def _log_time_of_request(self):
         t = int(time.time())
-        self.num_reqs_per_sec[t] = self.num_reqs_per_sec.setdefault(t, 0) + 1
+        self.num_reqs_per_sec[t] += 1
         self.last_request_timestamp = t
         self.stats.last_request_timestamp = t
 

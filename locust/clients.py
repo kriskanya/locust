@@ -1,5 +1,6 @@
 import re
 import time
+from collections import defaultdict
 from datetime import timedelta
 from urlparse import urlparse, urlunparse
 
