@@ -250,7 +250,6 @@ class StatsEntry(object):
         self.last_request_timestamp = int(time.time())
         self.num_reqs_per_sec = {}
         self.total_content_length = 0
-        self._jittered_response_times = None
 
     def log(self, response_time, content_length):
         self.stats.num_requests += 1
@@ -262,7 +261,6 @@ class StatsEntry(object):
         # increase total content-length
         self.total_content_length += content_length
 
-        self._jittered_response_times = None
 
     def _log_time_of_request(self):
         t = int(time.time())
