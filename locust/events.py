@@ -2,6 +2,9 @@ class EventHook(object):
     """
     Simple event class used to provide hooks for different types of events in Locust.
 
+    Event handlers should always accept **kwargs to allow for additional data
+    to be added to the events in the future.
+
     Here's how to use the EventHook class::
 
         my_event = EventHook()
@@ -30,12 +33,14 @@ request_success = EventHook()
 """
 *request_success* is fired when a request is completed successfully.
 
-Listeners should take the following arguments:
+Event is fired with the following arguments:
 
 * *request_type*: Request type method used
 * *name*: Path to the URL that was called (or override name if it was used in the call to the client)
 * *response_time*: Response time in milliseconds
 * *response_length*: Content-length of the response
+* *start_time*: The time that the request started
+* *end_time*: The time that the request completed
 """
 
 request_failure = EventHook()
@@ -48,6 +53,8 @@ Event is fired with the following arguments:
 * *name*: Path to the URL that was called (or override name if it was used in the call to the client)
 * *response_time*: Time in milliseconds until exception was thrown
 * *exception*: Exception instance that was thrown
+* *start_time*: The time that the request started
+* *end_time*: The time that the request failed
 """
 
 locust_error = EventHook()

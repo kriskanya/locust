@@ -114,7 +114,8 @@ class HttpSession(requests.Session):
         response = self._send_request_safe_mode(method, url, **kwargs)
         
         # record the consumed time
-        request_meta["response_time"] = int((time.time() - request_meta["start_time"]) * 1000)
+        request_meta["end_time"] = time.time()
+        request_meta["response_time"] = int((request_meta["end_time"] - request_meta["start_time"]) * 1000)
         
     
         request_meta["name"] = name or (response.history and response.history[0] or response).request.path_url
@@ -167,7 +168,7 @@ class ResponseContextManager(LocustResponse):
     def __init__(self, response, request_meta):
         # copy data from response to this object
         self.__dict__ = response.__dict__
-        self._request_meta = _request_meta
+        self._request_meta = request_meta
     
     def __enter__(self):
         return self
@@ -207,6 +208,8 @@ class ResponseContextManager(LocustResponse):
             name=self._request_meta["name"],
             response_time=self._request_meta["response_time"],
             response_length=self._request_meta["content_size"],
+            start_time=self._request_meta["start_time"],
+            end_time=self._request_meta["end_time"],
         )
         self._is_reported = True
     
@@ -231,5 +234,7 @@ class ResponseContextManager(LocustResponse):
             name=self._request_meta["name"],
             response_time=self._request_meta["response_time"],
             exception=exc,
+            start_time=self._request_meta["start_time"],
+            end_time=self._request_meta["end_time"],
         )
         self._is_reported = True

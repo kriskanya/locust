@@ -4,7 +4,7 @@ import hashlib
 import math
 import tablib
 from tabulate import tabulate
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 from functools import partial
 
 try:
@@ -251,22 +251,21 @@ class StatsEntry(object):
         self.num_reqs_per_sec = defaultdict(int)
         self.total_content_length = 0
 
-    def log(self, response_time, content_length):
+    def log(self, response_time, content_length, end_time):
         self.stats.num_requests += 1
         self.num_requests += 1
 
-        self._log_time_of_request()
+        self._log_time_of_request(end_time)
         self._log_response_time(response_time)
 
         # increase total content-length
         self.total_content_length += content_length
 
-
-    def _log_time_of_request(self):
-        t = int(time.time())
-        self.num_reqs_per_sec[t] += 1
-        self.last_request_timestamp = t
-        self.stats.last_request_timestamp = t
+    def _log_time_of_request(self, end_time):
+        end_time = int(end_time)
+        self.num_reqs_per_sec[end_time] += 1
+        self.last_request_timestamp = end_time
+        self.stats.last_request_timestamp = end_time
 
     def _log_response_time(self, response_time):
         self.total_response_time += response_time
@@ -598,22 +597,22 @@ global_stats = RequestStats()
 A global instance for holding the statistics. Should be removed eventually.
 """
 
-def on_request_success(request_type, name, response_time, response_length):
+def on_request_success(request_type, name, response_time, response_length, end_time, **kwargs):
     if global_stats.max_requests is not None and (global_stats.num_requests + global_stats.num_failures) >= global_stats.max_requests:
         raise StopLocust("Maximum number of requests reached")
-    global_stats.get(name, request_type).log(response_time, response_length)
+    global_stats.get(name, request_type).log(response_time, response_length, end_time)
 
-def on_request_failure(request_type, name, response_time, exception):
+def on_request_failure(request_type, name, response_time, exception, end_time, **kwargs):
     if global_stats.max_requests is not None and (global_stats.num_requests + global_stats.num_failures) >= global_stats.max_requests:
         raise StopLocust("Maximum number of requests reached")
     global_stats.get(name, request_type).log_error(exception)
 
-def on_report_to_master(client_id, data):
+def on_report_to_master(client_id, data, **kwargs):
     data["stats"] = [global_stats.entries[key].get_stripped_report() for key in global_stats.entries.iterkeys() if not (global_stats.entries[key].num_requests == 0 and global_stats.entries[key].num_failures == 0)]
     data["errors"] =  dict([(k, e.to_dict()) for k, e in global_stats.errors.iteritems()])
     global_stats.errors = {}
 
-def on_slave_report(client_id, data):
+def on_slave_report(client_id, data, **kwargs):
     for stats_data in data["stats"]:
         entry = StatsEntry.unserialize(stats_data)
         request_key = (entry.name, entry.method)

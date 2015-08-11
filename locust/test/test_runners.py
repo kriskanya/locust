@@ -87,9 +87,9 @@ class TestMasterRunner(LocustTestCase):
             server.mocked_send(Message("client_ready", None, "fake_client"))
             sleep(0)
             
-            master.stats.get("/", "GET").log(100, 23455)
-            master.stats.get("/", "GET").log(800, 23455)
-            master.stats.get("/", "GET").log(700, 23455)
+            master.stats.get("/", "GET").log(100, 23455, 1439303539.190565)
+            master.stats.get("/", "GET").log(800, 23455, 1439303540.190565)
+            master.stats.get("/", "GET").log(700, 23455, 1439303541.190565)
             
             data = {"user_count":1}
             events.report_to_master.fire(client_id="fake_client", data=data)
