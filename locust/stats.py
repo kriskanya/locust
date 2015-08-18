@@ -103,7 +103,7 @@ class RequestStats(object):
             "{0:.0%} high error bound".format(percentile),
         )
 
-    def get_percentile_dataset(self, include_empty=False):
+    def get_percentile_dataset(self, include_empty=True):
         data = tablib.Dataset()
         data.headers = ['Method', 'Name', '# reqs']
 
@@ -512,7 +512,7 @@ class StatsEntry(object):
             console_logger.info("Configence intervals computed.")
             return dict(zip(percentiles, [ErrorBar(float(interval[0]), float(interval[1])) for interval in intervals]))
 
-    def percentile(self, include_empty=False):
+    def percentile(self, include_empty=True):
         if not self.num_requests and not include_empty:
             raise ValueError("Can't calculate percentile on url with no successful requests")
 
@@ -538,7 +538,7 @@ class StatsEntry(object):
             else:
                 entry_count = len(PERCENTILES) + 1
 
-            result.extend(["N/A"] * entry_count)
+            results.extend(["N/A"] * entry_count)
 
         return tuple(results)
 
