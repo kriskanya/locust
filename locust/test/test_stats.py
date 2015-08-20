@@ -14,21 +14,21 @@ class TestRequestStats(unittest.TestCase):
         self.stats = RequestStats()
         self.stats.start_time = time.time()
         self.s = StatsEntry(self.stats, "test_entry", "GET")
-        self.s.log(45, 0)
-        self.s.log(135, 0)
-        self.s.log(44, 0)
+        self.s.log(45, 0, time.time())
+        self.s.log(135, 0, time.time())
+        self.s.log(44, 0, time.time())
         self.s.log_error(Exception("dummy fail"))
         self.s.log_error(Exception("dummy fail"))
-        self.s.log(375, 0)
-        self.s.log(601, 0)
-        self.s.log(35, 0)
-        self.s.log(79, 0)
+        self.s.log(375, 0, time.time())
+        self.s.log(601, 0, time.time())
+        self.s.log(35, 0, time.time())
+        self.s.log(79, 0, time.time())
         self.s.log_error(Exception("dummy fail"))
 
     def test_percentile(self):
         s = StatsEntry(self.stats, "percentile_test", "GET")
         for x in xrange(100):
-            s.log(x, 0)
+            s.log(x, 0, time.time())
 
         self.assertEqual(
             s.get_response_time_percentiles([0.5, 0.6, 0.95]),
@@ -42,10 +42,10 @@ class TestRequestStats(unittest.TestCase):
         self.assertEqual(self.s.total_rps, 7)
 
     def test_current_rps(self):
-        self.stats.last_request_timestamp = int(time.time()) + 4
+        self.stats.last_request_timestamp += 4
         self.assertEqual(self.s.current_rps, 3.5)
 
-        self.stats.last_request_timestamp = int(time.time()) + 25
+        self.stats.last_request_timestamp += 25
         self.assertEqual(self.s.current_rps, 0)
 
     def test_num_reqs_fails(self):
@@ -57,9 +57,9 @@ class TestRequestStats(unittest.TestCase):
 
     def test_reset(self):
         self.s.reset()
-        self.s.log(756, 0)
+        self.s.log(756, 0, 1439303539.1)
         self.s.log_error(Exception("dummy fail after reset"))
-        self.s.log(85, 0)
+        self.s.log(85, 0, 1439303539.2)
 
         self.assertEqual(self.s.total_rps, 2)
         self.assertEqual(self.s.num_requests, 2)
@@ -69,26 +69,26 @@ class TestRequestStats(unittest.TestCase):
 
     def test_reset_min_response_time(self):
         self.s.reset()
-        self.s.log(756, 0)
+        self.s.log(756, 0, 0)
         self.assertEqual(756, self.s.min_response_time)
 
     def test_aggregation(self):
         s1 = StatsEntry(self.stats, "aggregate me!", "GET")
-        s1.log(12, 0)
-        s1.log(12, 0)
-        s1.log(38, 0)
+        s1.log(12, 0, 0)
+        s1.log(12, 0, 0)
+        s1.log(38, 0, 0)
         s1.log_error("Dummy exzeption")
 
         s2 = StatsEntry(self.stats, "aggregate me!", "GET")
         s2.log_error("Dummy exzeption")
         s2.log_error("Dummy exzeption")
-        s2.log(12, 0)
-        s2.log(99, 0)
-        s2.log(14, 0)
-        s2.log(55, 0)
-        s2.log(38, 0)
-        s2.log(55, 0)
-        s2.log(97, 0)
+        s2.log(12, 0, 0)
+        s2.log(99, 0, 0)
+        s2.log(14, 0, 0)
+        s2.log(55, 0, 0)
+        s2.log(38, 0, 0)
+        s2.log(55, 0, 0)
+        s2.log(97, 0, 0)
 
         s = StatsEntry(self.stats, "GET", "")
         s.extend(s1, full_request_history=True)
@@ -106,9 +106,9 @@ class TestRequestStats(unittest.TestCase):
         from slaves to master.
         """
         s1 = StatsEntry(self.stats, "test", "GET")
-        s1.log(10, 0)
-        s1.log(20, 0)
-        s1.log(40, 0)
+        s1.log(10, 0, 0)
+        s1.log(20, 0, 0)
+        s1.log(40, 0, 0)
         u1 = StatsEntry.unserialize(s1.serialize())
 
         data = Message.unserialize(Message("dummy", s1.serialize(), "none").serialize()).data
