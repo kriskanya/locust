@@ -507,8 +507,16 @@ class StatsEntry(object):
                 method="bca" if self.num_requests > 1 else "pi",  # bca relies on the jacknife procedure, which needs more that one value
             )
 
-            console_logger.info("Configence intervals computed.")
-            return dict(zip(percentiles, [ErrorBar(float(interval[0]), float(interval[1])) for interval in intervals]))
+            console_logger.info("Confidence intervals computed.")
+            return dict(zip(
+                percentiles,
+                [
+                    ErrorBar(
+                        self._round_response_time(interval[0]),
+                        self._round_response_time(interval[1])
+                    ) for interval in intervals
+                ]
+            ))
 
     def percentile(self, include_empty=True):
         if not self.num_requests and not include_empty:
@@ -650,7 +658,9 @@ def print_percentile_stats(stats):
             data.append_col([
                 # We add 1e-9 to value, to prevent a division by zero error
                 "{0} (+{1:.2%}/-{2:.2%})".format(
-                    value, float(upper)/(value + 1e-9), float(lower)/(value + 1e-9)
+                    value,
+                    float('nan') if value == 0 else float(upper),
+                    float('nan') if value == 0 else float(lower),
                 )
                 for (value, upper, lower)
                 in zip(
