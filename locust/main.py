@@ -391,7 +391,7 @@ def main():
         sys.exit(0)
 
     if options.precision:
-        global_stats.precision = options.precision
+        global_stats.precision = int(options.precision)
 
     locustfile = find_locustfile(options.locustfile)
     if not locustfile:

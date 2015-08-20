@@ -115,9 +115,8 @@ class HttpSession(requests.Session):
         
         # record the consumed time
         request_meta["end_time"] = time.time()
-        request_meta["response_time"] = int((request_meta["end_time"] - request_meta["start_time"]) * 1000)
+        request_meta["response_time"] = (request_meta["end_time"] - request_meta["start_time"]) * 1000
         
-    
         request_meta["name"] = name or (response.history and response.history[0] or response).request.path_url
         
         # get the length of the content, but if the argument stream is set to True, we take
