@@ -461,10 +461,14 @@ class StatsEntry(object):
         Percent specified in range: 0.0 - 1.0
         """
         if numpy is not None:
+            versioned_kwargs = {}
+            if numpy.__version__ > '1.9.0':
+                versioned_kwargs['interpolation'] = 'higher'  # This mimics the behavior of the non-numpy version
+
             times = numpy.percentile(
                 self.expand_response_times(),
                 q=[percent*100 for percent in percentiles],
-                interpolation='higher',  # This mimics the behavior of the non-numpy version
+                **versioned_kwargs
             )
             return dict(zip(
                 percentiles,
