@@ -655,20 +655,24 @@ def print_percentile_stats(stats):
             new_col_name = "{0} (+/-)".format(
                 stats.percentile_column_name(percentile)
             )
-            data.append_col([
-                # We add 1e-9 to value, to prevent a division by zero error
-                "{0} (+{1:.2%}/-{2:.2%})".format(
-                    value,
-                    float('nan') if value == 0 else float(upper),
-                    float('nan') if value == 0 else float(lower),
-                )
-                for (value, upper, lower)
-                in zip(
-                    data[stats.percentile_column_name(percentile)],
-                    data[stats.confidence_interval_column_name(percentile)[1]],
-                    data[stats.confidence_interval_column_name(percentile)[0]],
-                )
-            ], header=new_col_name)
+            try:
+                data.append_col([
+                    # We add 1e-9 to value, to prevent a division by zero error
+                    "{0} (+{1:.2%}/-{2:.2%})".format(
+                        value,
+                        float('nan') if value == 0 or upper == 'N/A' else float(upper),
+                        float('nan') if value == 0 or lower == 'N/A' else float(lower),
+                    )
+                    for (value, upper, lower)
+                    in zip(
+                        data[stats.percentile_column_name(percentile)],
+                        data[stats.confidence_interval_column_name(percentile)[1]],
+                        data[stats.confidence_interval_column_name(percentile)[0]],
+                    )
+                ], header=new_col_name)
+            except IndexError:
+                # Attempted to insert an empty column.
+                continue
 
             del data[stats.percentile_column_name(percentile)]
             del data[stats.confidence_interval_column_name(percentile)[0]]
@@ -677,11 +681,13 @@ def print_percentile_stats(stats):
     # Move the 100% to the end
     values = data['100%']
     del data['100%']
-    data.append_col(values, header='100%')
+    if len(values):
+        data.append_col(values, header='100%')
 
-    console_logger.info("Percentage of the requests completed within given times")
-    console_logger.info(tabulate(data.dict, headers="keys"))
-    console_logger.info("")
+    if len(data.dict):
+        console_logger.info("Percentage of the requests completed within given times")
+        console_logger.info(tabulate(data.dict, headers="keys"))
+        console_logger.info("")
 
 def print_error_report():
     if not len(global_stats.errors):
