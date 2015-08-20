@@ -290,10 +290,7 @@ class StatsEntry(object):
             return 0
 
         num_digits = int(math.log10(response_time)) + 1
-        if num_digits <= self.precision:
-            return response_time
-        else:
-            return int(round(response_time, self.precision - num_digits))
+        return round(response_time, self.precision - num_digits)
 
     def log_error(self, error):
         self.num_failures += 1
@@ -464,14 +461,18 @@ class StatsEntry(object):
         Percent specified in range: 0.0 - 1.0
         """
         if numpy is not None:
+            versioned_kwargs = {}
+            if numpy.__version__ > '1.9.0':
+                versioned_kwargs['interpolation'] = 'higher'  # This mimics the behavior of the non-numpy version
+
             times = numpy.percentile(
                 self.expand_response_times(),
                 q=[percent*100 for percent in percentiles],
-                interpolation='higher',  # This mimics the behavior of the non-numpy version
+                **versioned_kwargs
             )
             return dict(zip(
                 percentiles,
-                [int(time) for time in times],
+                times,
             ))
         else:
             response_times = {}
@@ -506,8 +507,16 @@ class StatsEntry(object):
                 method="bca" if self.num_requests > 1 else "pi",  # bca relies on the jacknife procedure, which needs more that one value
             )
 
-            console_logger.info("Configence intervals computed.")
-            return dict(zip(percentiles, [ErrorBar(float(interval[0]), float(interval[1])) for interval in intervals]))
+            console_logger.info("Confidence intervals computed.")
+            return dict(zip(
+                percentiles,
+                [
+                    ErrorBar(
+                        self._round_response_time(interval[0]),
+                        self._round_response_time(interval[1])
+                    ) for interval in intervals
+                ]
+            ))
 
     def percentile(self, include_empty=True):
         if not self.num_requests and not include_empty:
@@ -647,8 +656,11 @@ def print_percentile_stats(stats):
                 stats.percentile_column_name(percentile)
             )
             data.append_col([
+                # We add 1e-9 to value, to prevent a division by zero error
                 "{0} (+{1:.2%}/-{2:.2%})".format(
-                    value, float(upper)/value, float(lower)/value
+                    value,
+                    float('nan') if value == 0 else float(upper),
+                    float('nan') if value == 0 else float(lower),
                 )
                 for (value, upper, lower)
                 in zip(
