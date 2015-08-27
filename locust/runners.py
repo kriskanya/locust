@@ -5,6 +5,7 @@ import warnings
 import random
 import logging
 from time import time
+from datetime import datetime
 from hashlib import md5
 
 import gevent
@@ -37,6 +38,10 @@ class LocustRunner(object):
         self.hatching_greenlet = None
         self.exceptions = {}
         self.stats = global_stats
+        self.testid = datetime.now().isoformat()
+        self.precision = options.precision
+
+        self.sync_configuration()
 
         # register listener that resets stats when hatching is complete
         def on_hatch_complete(user_count):
@@ -187,6 +192,12 @@ class LocustRunner(object):
         row["nodes"].add(node_id)
         self.exceptions[key] = row
 
+    def sync_configuration(self):
+        events.reconfigure.fire(
+            precision=self.precision,
+            testid=self.testid,
+        )
+
 class LocalLocustRunner(LocustRunner):
     def __init__(self, locust_classes, options):
         super(LocalLocustRunner, self).__init__(locust_classes, options)
@@ -287,7 +298,8 @@ class MasterLocustRunner(DistributedLocustRunner):
                 "num_clients":slave_num_clients,
                 "num_requests": self.num_requests,
                 "host":self.host,
-                "stop_timeout":None
+                "stop_timeout":None,
+                "testid":self.testid,
             }
 
             if remaining > 0:
@@ -388,6 +400,10 @@ class SlaveLocustRunner(DistributedLocustRunner):
                 #self.num_clients = job["num_clients"]
                 self.num_requests = job["num_requests"]
                 self.host = job["host"]
+                self.testid = job["testid"]
+
+                self.sync_configuration()
+
                 self.hatching_greenlet = gevent.spawn(lambda: self.start_hatching(locust_count=job["num_clients"], hatch_rate=job["hatch_rate"]))
             elif msg.type == "stop":
                 self.stop()

@@ -132,3 +132,9 @@ locust_stop_hatching = EventHook()
 """
 *locust_stop_hatching* is fired when terminate the hatching process on any locust worker.
 """
+
+reconfigure = EventHook()
+"""
+*reconfigure* is fired when configuration is changed. On slaves, it is also called
+when configuration is sent from the master.
+"""
