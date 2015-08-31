@@ -152,6 +152,7 @@ class LocustRunner(object):
             self.stats.clear_all()
             self.stats.start_time = time()
             self.exceptions = {}
+            self.testid = datetime.now().isoformat()
             events.locust_start_hatching.fire()
 
         # Dynamically changing the locust count
@@ -274,6 +275,7 @@ class MasterLocustRunner(DistributedLocustRunner):
         return sum([c.user_count for c in self.clients.itervalues()])
 
     def start_hatching(self, locust_count, hatch_rate):
+        self.testid = datetime.now().isoformat()
         num_slaves = len(self.clients.ready) + len(self.clients.running)
         if not num_slaves:
             logger.warning("You are running in distributed mode but have no slave servers connected. "
