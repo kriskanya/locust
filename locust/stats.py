@@ -660,8 +660,8 @@ def print_percentile_stats(stats):
                     # We add 1e-9 to value, to prevent a division by zero error
                     "{0} (+{1:.2%}/-{2:.2%})".format(
                         value,
-                        float('nan') if value == 0 or upper == 'N/A' else float(upper),
-                        float('nan') if value == 0 or lower == 'N/A' else float(lower),
+                        float('nan') if value == 0 or upper == 'N/A' else float(upper) / value,
+                        float('nan') if value == 0 or lower == 'N/A' else float(lower) / value,
                     )
                     for (value, upper, lower)
                     in zip(
